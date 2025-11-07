@@ -50,7 +50,7 @@ public fun battle(hero: Hero, arena: Arena, ctx: &mut TxContext) {
         // Hints: 
         // If hero wins: both heroes go to ctx.sender()
         // If warrior wins: both heroes go to battle place owner
-    // TODO:  Emit BattlePlaceCompleted event with winner/loser IDs (Don't forget to use object::id(&warrior) or object::id(&hero) ). 
+    // TODO:  Emit ArenaCompleted event with winner/loser IDs (Don't forget to use object::id(&warrior) or object::id(&hero) ). 
         // Hints:  
         // You have to emit this inside of the if else statements
     // TODO: Delete the battle place ID 
@@ -235,7 +235,7 @@ export const transferHero = (heroId: string, to: string) => {
 }
 ```
 
-#### 5. **Create Arena** (`ui/src/utility/battle/create_arena.ts`)
+#### 5. **Create Arena** (`ui/src/utility/arena/create_arena.ts`)
 
 ```typescript
 export const createArena = (packageId: string, heroId: string) => {
@@ -252,7 +252,7 @@ export const createArena = (packageId: string, heroId: string) => {
 }
 ```
 
-#### 6. **Battle** (`ui/src/utility/battle/battle.ts`)
+#### 6. **Battle** (`ui/src/utility/arena/battle.ts`)
 
 ```typescript
 export const battle = (packageId: string, heroId: string, arenaId: string) => {
