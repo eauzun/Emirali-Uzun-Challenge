@@ -5,7 +5,7 @@ use sui::coin::{Self, Coin};
 use sui::event;
 use sui::sui::SUI;
 
-// ========= ERRORS =========
+// ========= ERROR CODES =========
 
 const EInvalidPayment: u64 = 1;
 
@@ -41,58 +41,71 @@ public struct HeroBought has copy, drop {
     timestamp: u64,
 }
 
-// ========= FUNCTIONS =========
+// ========= INITIALIZATION =========
 
 fun init(ctx: &mut TxContext) {
-    let admin_cap = AdminCap{
+    let admin_cap = AdminCap {
         id: object::new(ctx),
     };
-    transfer::public_transfer(admin_cap, ctx.sender())
+    transfer::public_transfer(admin_cap, ctx.sender());
 }
 
-public fun list_hero(nft: Hero, price: u64, ctx: &mut TxContext) {
+// ========= PUBLIC FUNCTIONS =========
 
-    let list_hero = ListHero{
+public fun list_hero(nft: Hero, price: u64, ctx: &mut TxContext) {
+    let timestamp = ctx.epoch_timestamp_ms();
+    let seller = ctx.sender();
+    
+    let list_hero = ListHero {
         id: object::new(ctx),
         nft,
         price,
-        seller: ctx.sender(),
+        seller,
     };
-    event::emit(HeroListed{
-        list_hero_id: object::id(&list_hero),
+    
+    let list_hero_id = object::id(&list_hero);
+    
+    event::emit(HeroListed {
+        list_hero_id,
         price,
-        seller: ctx.sender(),
-        timestamp: ctx.epoch_timestamp_ms()
+        seller,
+        timestamp,
     });
+    
     transfer::share_object(list_hero);
 }
 
 #[allow(lint(self_transfer))]
 public fun buy_hero(list_hero: ListHero, coin: Coin<SUI>, ctx: &mut TxContext) {
-    let ListHero {id, nft, price, seller} = list_hero;
+    let ListHero { id, nft, price, seller } = list_hero;
+    
     assert!(coin::value(&coin) == price, EInvalidPayment);
+    
+    let buyer = ctx.sender();
+    let timestamp = ctx.epoch_timestamp_ms();
+    let listing_id = object::uid_to_inner(&id);
+    
     transfer::public_transfer(coin, seller);
-    transfer::public_transfer(nft, ctx.sender());
-
-    event::emit(HeroBought{
-        list_hero_id: object::uid_to_inner(&id),
+    transfer::public_transfer(nft, buyer);
+    
+    event::emit(HeroBought {
+        list_hero_id: listing_id,
         price,
-        buyer: ctx.sender(),
+        buyer,
         seller,
-        timestamp: ctx.epoch_timestamp_ms(),
+        timestamp,
     });
-
+    
     object::delete(id);
 }
 
 // ========= ADMIN FUNCTIONS =========
 
 public fun delist(_: &AdminCap, list_hero: ListHero) {
-
-    let ListHero {id, nft, price: _, seller} = list_hero;
+    let ListHero { id, nft, price: _, seller } = list_hero;
+    
     transfer::public_transfer(nft, seller);
-
-    object::delete(id)
+    object::delete(id);
 }
 
 public fun change_the_price(_: &AdminCap, list_hero: &mut ListHero, new_price: u64) {
@@ -106,7 +119,7 @@ public fun listing_price(list_hero: &ListHero): u64 {
     list_hero.price
 }
 
-// ========= TEST ONLY FUNCTIONS =========
+// ========= TEST INITIALIZATION =========
 
 #[test_only]
 public fun test_init(ctx: &mut TxContext) {
