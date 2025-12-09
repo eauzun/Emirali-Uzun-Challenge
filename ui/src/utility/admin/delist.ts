@@ -1,10 +1,6 @@
 import { Transaction } from "@mysten/sui/transactions";
 
-export const delist = (
-  packageId: string,
-  listHeroId: string,
-  adminCapId: string,
-) => {
+export const delist = (packageId: string, listHeroId: string,adminCapId: string,) => {
   const tx = new Transaction();
 
   tx.moveCall({
